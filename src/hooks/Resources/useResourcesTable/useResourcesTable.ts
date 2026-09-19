@@ -1,24 +1,33 @@
 import type { GridPaginationModel, GridSortModel } from "@mui/x-data-grid"
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
 import type { FetchResourcesParams } from "@src/api/Resources/resourcesApi"
-import { fetchResources } from "@src/api/Resources/resourcesApi"
-import { isAbortError } from "@src/api/common/mockNetwork"
 import type { Criticality, Environment, Provider, Resource } from "@src/types"
 import { useDebouncedValue } from "@src/hooks/common/useDebouncedValue"
+import { useAppDispatch, useAppSelector } from "@src/state/hooks"
+import { fetchResourcesPage } from "@src/state/Resources/resourcesSlice"
 import { INITIAL_STATE, TABLE_ACTION_TYPE, tableReducer } from "./tableReducer"
-import { FETCH_ERROR_MESSAGE, FIRST_PAGE, isSortableField, SEARCH_DEBOUNCE_MS } from "./utils"
+import { FIRST_PAGE, isSortableField, SEARCH_DEBOUNCE_MS } from "./utils"
 
-export type UseResourcesTableProps = {
-    onResourcesLoaded: (resources: Resource[]) => void
-}
-
-export const useResourcesTable = ({ onResourcesLoaded }: UseResourcesTableProps) => {
+export const useResourcesTable = () => {
     const [state, dispatch] = useReducer(tableReducer, INITIAL_STATE)
-    const [rows, setRows] = useState<Resource[]>([])
-    const [rowCount, setRowCount] = useState(0)
-    const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState<string>()
     const [reloadKey, setReloadKey] = useState(0)
+
+    const appDispatch = useAppDispatch()
+    const {
+        ids,
+        total: rowCount,
+        isLoading,
+        error,
+    } = useAppSelector((store) => store.resources.list)
+    const entities = useAppSelector((store) => store.resources.entities)
+
+    const rows = useMemo(
+        () =>
+            ids
+                .map((id) => entities[id])
+                .filter((resource): resource is Resource => Boolean(resource)),
+        [ids, entities],
+    )
 
     const debouncedSearch = useDebouncedValue(state.filters.search, SEARCH_DEBOUNCE_MS)
     const token = state.tokens[state.page]
@@ -56,33 +65,21 @@ export const useResourcesTable = ({ onResourcesLoaded }: UseResourcesTableProps)
             return
         }
 
-        const controller = new AbortController()
+        const request = appDispatch(fetchResourcesPage(params))
 
-        setIsLoading(true)
-        setError(undefined)
-
-        fetchResources(params, controller.signal)
-            .then((response) => {
-                console.log("response", response)
-                setRows(response.items)
-                setRowCount(response.total)
-                setIsLoading(false)
-                onResourcesLoaded(response.items)
+        request
+            .unwrap()
+            .then((response) =>
                 dispatch({
                     type: TABLE_ACTION_TYPE.PAGE_LOADED,
                     page,
                     nextToken: response.next_token,
-                })
-            })
-            .catch((fetchError: unknown) => {
-                if (isAbortError(fetchError)) return
+                }),
+            )
+            .catch(() => undefined)
 
-                setError(FETCH_ERROR_MESSAGE)
-                setIsLoading(false)
-            })
-
-        return () => controller.abort()
-    }, [params, page, pageSize, reloadKey, onResourcesLoaded])
+        return () => request.abort()
+    }, [appDispatch, params, page, pageSize, reloadKey])
 
     const paginationModel = useMemo<GridPaginationModel>(
         () => ({ page: state.page, pageSize: state.pageSize }),

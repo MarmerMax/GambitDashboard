@@ -1,3 +1,4 @@
+import Alert from "@mui/material/Alert"
 import Box from "@mui/material/Box"
 import Button from "@mui/material/Button"
 import Chip from "@mui/material/Chip"
@@ -19,6 +20,8 @@ export interface CreateApplicationDialogPropsType {
     name: string
     description: string
     nameError?: string
+    submitError?: string
+    isSubmitting: boolean
     selectedResources: Resource[]
     onNameChange: (value: string) => void
     onDescriptionChange: (value: string) => void
@@ -33,6 +36,8 @@ export const CreateApplicationDialog = ({
     name,
     description,
     nameError,
+    submitError,
+    isSubmitting,
     selectedResources,
     onNameChange,
     onDescriptionChange,
@@ -77,6 +82,7 @@ export const CreateApplicationDialog = ({
 
                 <DialogContent dividers>
                     <Stack spacing={2}>
+                        {submitError && <Alert severity="error">{submitError}</Alert>}
                         <TextField
                             autoFocus
                             required
@@ -141,8 +147,10 @@ export const CreateApplicationDialog = ({
                 </DialogContent>
 
                 <DialogActions>
-                    <Button onClick={onCancel}>Cancel</Button>
-                    <Button type="submit" variant="contained">
+                    <Button onClick={onCancel} disabled={isSubmitting}>
+                        Cancel
+                    </Button>
+                    <Button type="submit" variant="contained" loading={isSubmitting}>
                         Create Application
                     </Button>
                 </DialogActions>

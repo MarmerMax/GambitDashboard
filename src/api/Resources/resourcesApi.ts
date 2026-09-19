@@ -57,6 +57,17 @@ const sortResources = (resources: Resource[], params: FetchResourcesParams) => {
     return [...resources].sort((left, right) => compareByField(left, right, field) * direction)
 }
 
+export const fetchResourcesByIds = async (
+    ids: string[],
+    signal?: AbortSignal,
+): Promise<Resource[]> => {
+    await simulateLatency(signal)
+
+    const wanted = new Set(ids)
+
+    return RESOURCES.filter((resource) => wanted.has(resource.id))
+}
+
 export const fetchResources = async (
     params: FetchResourcesParams,
     signal?: AbortSignal,

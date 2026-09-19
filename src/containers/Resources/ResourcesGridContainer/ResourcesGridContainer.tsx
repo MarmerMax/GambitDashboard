@@ -5,12 +5,10 @@ import type { GridRowSelectionModel } from "@mui/x-data-grid"
 import { useCallback, useMemo } from "react"
 import { ResourcesGrid } from "@src/components/Resources/ResourcesGrid"
 import { useResourcesTable } from "@src/hooks/Resources/useResourcesTable/useResourcesTable"
-import type { Resource } from "@src/types"
 
 export interface ResourcesGridContainerPropsType {
     selectedIds: string[]
     onClearSelection: () => void
-    onResourcesLoaded: (resources: Resource[]) => void
     onSelectedIdsChange: (ids: string[]) => void
     onCreateApplication: () => void
 }
@@ -18,7 +16,6 @@ export interface ResourcesGridContainerPropsType {
 export const ResourcesGridContainer = ({
     selectedIds,
     onClearSelection,
-    onResourcesLoaded,
     onCreateApplication,
     onSelectedIdsChange,
 }: ResourcesGridContainerPropsType) => {
@@ -39,7 +36,7 @@ export const ResourcesGridContainer = ({
         setCriticality,
         handleSortModelChange,
         handlePaginationModelChange,
-    } = useResourcesTable({ onResourcesLoaded })
+    } = useResourcesTable()
 
     const rowSelectionModel = useMemo<GridRowSelectionModel>(
         () => ({ type: "include", ids: new Set<string>(selectedIds) }),

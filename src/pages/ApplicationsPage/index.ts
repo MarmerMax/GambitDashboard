@@ -1,2 +1,1 @@
 export * from "./ApplicationsPage"
-export * from "./ResourcesPage"

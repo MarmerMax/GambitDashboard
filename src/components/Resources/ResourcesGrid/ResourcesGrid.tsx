@@ -74,9 +74,3 @@ export const ResourcesGrid = ({
         />
     </Paper>
 )
-
-declare module "@mui/x-data-grid" {
-    interface ToolbarPropsOverrides extends ResourcesToolbarPropsType {}
-
-    interface NoRowsOverlayPropsOverrides extends ResourcesNoRowsPropsType {}
-}
