@@ -1,7 +1,6 @@
-import Container from "@mui/material/Container"
-import Stack from "@mui/material/Stack"
+import { Container, Stack } from "@mui/material"
 import { Outlet } from "react-router"
-import { AppHeader } from "@src/components/common/AppHeader"
+import { AppHeader } from "../AppHeader"
 
 export const AppLayout = () => (
     <Stack sx={{ height: "100vh" }}>

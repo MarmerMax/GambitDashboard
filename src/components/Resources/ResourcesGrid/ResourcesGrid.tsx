@@ -1,4 +1,4 @@
-import Paper from "@mui/material/Paper"
+import { Paper } from "@mui/material"
 import { DataGrid } from "@mui/x-data-grid"
 import type { GridPaginationModel, GridRowSelectionModel, GridSortModel } from "@mui/x-data-grid"
 import type { Resource } from "@src/types"

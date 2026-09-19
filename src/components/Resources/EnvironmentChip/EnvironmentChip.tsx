@@ -1,6 +1,6 @@
-import { ENVIRONMENT_COLOR } from "@src/theme/statusColors"
+import { ENVIRONMENT_COLOR } from "@src/theme"
 import type { Environment } from "@src/types"
-import { StatusChip } from "@src/components/common/StatusChip"
+import { StatusChip } from "@src/components/common"
 
 export interface EnvironmentChipPropsType {
     environment: Environment

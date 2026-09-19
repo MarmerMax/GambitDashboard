@@ -1,7 +1,4 @@
-import Alert from "@mui/material/Alert"
-import AlertTitle from "@mui/material/AlertTitle"
-import Button from "@mui/material/Button"
-import Container from "@mui/material/Container"
+import { Alert, AlertTitle, Button, Container } from "@mui/material"
 import { Component } from "react"
 import type { ErrorInfo, ReactNode } from "react"
 

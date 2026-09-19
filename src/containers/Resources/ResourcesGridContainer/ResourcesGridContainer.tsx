@@ -1,10 +1,8 @@
-import Alert from "@mui/material/Alert"
-import Button from "@mui/material/Button"
-import Stack from "@mui/material/Stack"
+import { Alert, Button, Stack } from "@mui/material"
 import type { GridRowSelectionModel } from "@mui/x-data-grid"
 import { useCallback, useMemo } from "react"
-import { ResourcesGrid } from "@src/components/Resources/ResourcesGrid"
-import { useResourcesTable } from "@src/hooks/Resources/useResourcesTable/useResourcesTable"
+import { ResourcesGrid } from "@src/components/Resources"
+import { useResourcesTable } from "@src/hooks/Resources"
 
 export interface ResourcesGridContainerPropsType {
     selectedIds: string[]

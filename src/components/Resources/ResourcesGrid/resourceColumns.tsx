@@ -1,11 +1,10 @@
-import Stack from "@mui/material/Stack"
-import Typography from "@mui/material/Typography"
+import { Stack, Typography } from "@mui/material"
 import type { GridColDef } from "@mui/x-data-grid"
 import type { Resource } from "@src/types"
-import { CriticalityChip } from "@src/components/Resources/CriticalityChip"
-import { EnvironmentChip } from "@src/components/Resources/EnvironmentChip"
-import { OpenIssues } from "@src/components/Resources/OpenIssues"
-import { ProviderChip } from "@src/components/Resources/ProviderChip"
+import { CriticalityChip } from "../CriticalityChip"
+import { EnvironmentChip } from "../EnvironmentChip"
+import { OpenIssues } from "../OpenIssues"
+import { ProviderChip } from "../ProviderChip"
 
 const COLUMNS: GridColDef<Resource>[] = [
     {

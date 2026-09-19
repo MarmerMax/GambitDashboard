@@ -1,5 +1,4 @@
-import Chip from "@mui/material/Chip"
-import { alpha } from "@mui/material/styles"
+import { Chip, alpha } from "@mui/material"
 
 export interface StatusChipProps {
     label: string

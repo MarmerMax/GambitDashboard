@@ -1,31 +1,28 @@
-import { useCallback, useMemo, useState } from "react"
-import { ApplicationCreatedSnackbar } from "@src/components/Applications/ApplicationCreatedSnackbar"
-import { CreateApplicationDialogContainer } from "@src/containers/Applications/CreateApplicationDialogContainer"
-import { ResourcesGridContainer } from "@src/containers/Resources/ResourcesGridContainer"
-import { useResourceSelection } from "@src/hooks/Resources/useResourceSelection"
-import { useAppSelector } from "@src/state/hooks"
+import { useCallback, useState } from "react"
+import { ApplicationCreatedSnackbar } from "@src/components/Applications"
+import { CreateApplicationDialogContainer } from "@src/containers/Applications"
+import { ResourcesGridContainer } from "@src/containers/Resources"
+import { useResourceSelection } from "@src/hooks/Resources"
+import { useGetResourcesByIdsQuery } from "@src/state/Resources"
 import type { Application, Resource } from "@src/types"
+
+const EMPTY_RESOURCES: Resource[] = []
 
 export const ResourcesPage = () => {
     const { selectedIds, onSetSelectedIds, onClearSelectedIds } = useResourceSelection()
+
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
     const [createdApplication, setCreatedApplication] = useState<Application>()
 
-    const entities = useAppSelector((store) => store.resources.entities)
-
-    const selectedResources = useMemo(
-        () =>
-            selectedIds
-                .map((id) => entities[id])
-                .filter((resource): resource is Resource => Boolean(resource)),
-        [selectedIds, entities],
-    )
+    const { data: selectedResources = EMPTY_RESOURCES } = useGetResourcesByIdsQuery(selectedIds, {
+        skip: !isCreateDialogOpen || selectedIds.length === 0,
+    })
 
     const handleOpenCreateDialog = useCallback(() => setIsCreateDialogOpen(true), [])
 
     const handleCloseCreateDialog = useCallback(() => setIsCreateDialogOpen(false), [])
 
-    const handleCreated = useCallback(
+    const handleApplicationCreated = useCallback(
         (application: Application) => {
             onClearSelectedIds()
             setIsCreateDialogOpen(false)
@@ -49,7 +46,7 @@ export const ResourcesPage = () => {
                 open={isCreateDialogOpen}
                 selectedResources={selectedResources}
                 onCancel={handleCloseCreateDialog}
-                onCreated={handleCreated}
+                onCreated={handleApplicationCreated}
             />
 
             <ApplicationCreatedSnackbar

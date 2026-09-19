@@ -1,8 +1,7 @@
 import { useCallback, useState } from "react"
-import { CreateApplicationDialog } from "@src/components/Applications/CreateApplicationDialog"
-import { createApplication } from "@src/api/Applications/applicationsApi"
-import { addApplication } from "@src/state/Applications/applicationsSlice"
-import { useAppDispatch } from "@src/state/hooks"
+import { CreateApplicationDialog } from "@src/components/Applications"
+import { useCreateApplicationMutation } from "@src/state/Applications"
+import { getErrorMessage } from "@src/state/api"
 import type { Application, Resource } from "@src/types"
 
 export interface CreateApplicationDialogContainerPropsType {
@@ -13,7 +12,6 @@ export interface CreateApplicationDialogContainerPropsType {
 }
 
 const NAME_ERROR = "Application name is required"
-const CREATE_ERROR = "Could not create the application. Please try again."
 
 export const CreateApplicationDialogContainer = ({
     open,
@@ -21,20 +19,19 @@ export const CreateApplicationDialogContainer = ({
     onCancel,
     onCreated,
 }: CreateApplicationDialogContainerPropsType) => {
-    const dispatch = useAppDispatch()
+    const [createApplication, { isLoading: isSubmitting, error, reset }] =
+        useCreateApplicationMutation()
 
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [nameError, setNameError] = useState<string>()
-    const [submitError, setSubmitError] = useState<string>()
-    const [isLoading, setIsLoading] = useState(false)
 
     const resetForm = useCallback(() => {
         setName("")
         setDescription("")
         setNameError(undefined)
-        setSubmitError(undefined)
-    }, [])
+        reset()
+    }, [reset])
 
     const handleNameChange = useCallback((value: string) => {
         setName(value)
@@ -55,21 +52,19 @@ export const CreateApplicationDialogContainer = ({
 
         const resourceIds = selectedResources.map((resource) => resource.id)
 
-        setSubmitError(undefined)
-        setIsLoading(true)
-
         try {
-            const application = await createApplication({ name, description, resourceIds })
+            const application = await createApplication({
+                name,
+                description,
+                resourceIds,
+            }).unwrap()
 
-            dispatch(addApplication(application))
             resetForm()
             onCreated(application)
         } catch {
-            setSubmitError(CREATE_ERROR)
-        } finally {
-            setIsLoading(false)
+            return
         }
-    }, [dispatch, name, description, selectedResources, resetForm, onCreated])
+    }, [createApplication, name, description, selectedResources, resetForm, onCreated])
 
     return (
         <CreateApplicationDialog
@@ -77,8 +72,8 @@ export const CreateApplicationDialogContainer = ({
             name={name}
             description={description}
             nameError={nameError}
-            submitError={submitError}
-            isSubmitting={isLoading}
+            submitError={getErrorMessage(error)}
+            isSubmitting={isSubmitting}
             selectedResources={selectedResources}
             onNameChange={handleNameChange}
             onDescriptionChange={setDescription}

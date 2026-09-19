@@ -1,4 +1,4 @@
-import { RESOURCES } from "@src/mock/resources"
+import { RESOURCES } from "@src/mock"
 import type {
     Criticality,
     CursorPage,
@@ -8,7 +8,7 @@ import type {
     SortDirection,
 } from "@src/types"
 import type { Provider } from "@src/types"
-import { decodeCursor, encodeCursor, simulateLatency } from "@src/api/common/mockNetwork"
+import { decodeCursor, encodeCursor, simulateLatency } from "@src/api/common"
 
 export interface FetchResourcesParams {
     search?: string

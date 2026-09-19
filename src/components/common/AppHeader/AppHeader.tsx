@@ -1,21 +1,22 @@
-import AppBar from "@mui/material/AppBar"
-import Avatar from "@mui/material/Avatar"
-import Stack from "@mui/material/Stack"
-import Tab from "@mui/material/Tab"
-import Tabs from "@mui/material/Tabs"
-import Toolbar from "@mui/material/Toolbar"
-import Typography from "@mui/material/Typography"
+import {
+    AppBar,
+    Avatar,
+    Stack,
+    Tab,
+    Tabs,
+    Toolbar,
+    Typography,
+    IconButton,
+    Tooltip,
+} from "@mui/material"
 import { Link, useLocation } from "react-router"
 import { APP_ROUTES } from "@src/types"
 
-// Uncommenting the avatar below also needs these imports back:
-// import IconButton from "@mui/material/IconButton"
-// import Tooltip from "@mui/material/Tooltip"
-// const PROFILE_URL = "https://www.linkedin.com/in/max-marmer-b8a28a16b/"
-// const PROFILE_NAME = "Maksim Marmer"
-// const PROFILE_INITIALS = "MM"
-// const PROFILE_AVATAR_SRC =
-//     "https://media.licdn.com/dms/image/v2/D4D03AQHeMrvjAWUi7Q/profile-displayphoto-crop_800_800/B4DaCF6wqiJ8AI-/0/1788953169239?e=1791417600&v=beta&t=vffn21kiN1TFYBwT574msGEcKNHLwHkWGAqFfl8Czxw"
+const PROFILE_URL = "https://www.linkedin.com/in/max-marmer-b8a28a16b/"
+const PROFILE_NAME = "Maksim Marmer"
+const PROFILE_INITIALS = "MM"
+const PROFILE_AVATAR_SRC =
+    "https://media.licdn.com/dms/image/v2/D4D03AQHeMrvjAWUi7Q/profile-displayphoto-crop_800_800/B4DaCF6wqiJ8AI-/0/1788953169239?e=1791417600&v=beta&t=vffn21kiN1TFYBwT574msGEcKNHLwHkWGAqFfl8Czxw"
 
 export const AppHeader = () => {
     const { pathname } = useLocation()
@@ -37,7 +38,7 @@ export const AppHeader = () => {
                     </Avatar>
                     <Stack sx={{ minWidth: 0 }}>
                         <Typography variant="subtitle1" sx={{ fontWeight: 650, lineHeight: 1.25 }}>
-                            Security App
+                            Gambit Security Dashboard
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
                             Cloud resource explorer
@@ -60,7 +61,7 @@ export const AppHeader = () => {
                     />
                 </Tabs>
 
-                {/* <Tooltip title={PROFILE_NAME}>
+                <Tooltip title={PROFILE_NAME}>
                     <IconButton
                         component="a"
                         href={PROFILE_URL}
@@ -70,7 +71,7 @@ export const AppHeader = () => {
                     >
                         <Avatar src={PROFILE_AVATAR_SRC}>{PROFILE_INITIALS}</Avatar>
                     </IconButton>
-                </Tooltip> */}
+                </Tooltip>
             </Toolbar>
         </AppBar>
     )

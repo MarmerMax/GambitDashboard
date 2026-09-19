@@ -1,29 +1,23 @@
-import Alert from "@mui/material/Alert"
-import Box from "@mui/material/Box"
-import CircularProgress from "@mui/material/CircularProgress"
-import DialogContent from "@mui/material/DialogContent"
-import Stack from "@mui/material/Stack"
-import Typography from "@mui/material/Typography"
-import { Dialog } from "@src/components/common/Dialog"
-import { CRITICALITY_COLOR } from "@src/theme/statusColors"
+import { Alert, Box, CircularProgress, DialogContent, Stack, Typography } from "@mui/material"
+import { Dialog } from "@src/components/common"
+import { CRITICALITY_COLOR } from "@src/theme"
 import { CRITICALITIES } from "@src/types"
 import type { Application, Resource } from "@src/types"
 import { ApplicationGraph } from "./ApplicationGraph"
-import { ApplicationMemberList } from "./ApplicationMemberList"
 
 export interface ApplicationDetailsDialogPropsType {
     application?: Application
     resources: Resource[]
     isLoading: boolean
     error?: string
+    selectedResourceId?: string
+    onSelectResource: (id: string) => void
     isFullScreen: boolean
     onToggleFullScreen: () => void
     onClose: () => void
 }
 
 const LEGEND_DOT_SIZE = 8
-const GRAPH_HEIGHT = 380
-const FULL_SCREEN_GRAPH_HEIGHT = "60vh"
 const LOADING_HEIGHT = 240
 
 export const ApplicationDetailsDialog = ({
@@ -31,6 +25,8 @@ export const ApplicationDetailsDialog = ({
     resources,
     isLoading,
     error,
+    selectedResourceId,
+    onSelectResource,
     isFullScreen,
     onToggleFullScreen,
     onClose,
@@ -43,13 +39,17 @@ export const ApplicationDetailsDialog = ({
         fullScreen={isFullScreen}
         onToggleFullScreen={onToggleFullScreen}
         onClose={onClose}
+        slotProps={{ paper: { sx: { height: "100%" } } }}
         title={application?.name ?? "Application"}
         subtitle={
             application?.description ??
             `${resources.length} connected resource${resources.length === 1 ? "" : "s"}`
         }
     >
-        <DialogContent dividers>
+        <DialogContent
+            dividers
+            sx={{ display: "flex", flexDirection: "column", overflow: "hidden" }}
+        >
             {error && <Alert severity="error">{error}</Alert>}
 
             {!error && isLoading && (
@@ -61,8 +61,13 @@ export const ApplicationDetailsDialog = ({
             )}
 
             {!error && !isLoading && application && (
-                <Stack spacing={2}>
-                    <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap" }}>
+                <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+                    <Stack
+                        direction="row"
+                        spacing={1.5}
+                        useFlexGap
+                        sx={{ flexWrap: "wrap", flexShrink: 0 }}
+                    >
                         {CRITICALITIES.map((criticality) => (
                             <Stack
                                 key={criticality}
@@ -92,10 +97,9 @@ export const ApplicationDetailsDialog = ({
                     <ApplicationGraph
                         application={application}
                         resources={resources}
-                        height={isFullScreen ? FULL_SCREEN_GRAPH_HEIGHT : GRAPH_HEIGHT}
+                        selectedResourceId={selectedResourceId}
+                        onSelectResource={onSelectResource}
                     />
-
-                    <ApplicationMemberList resources={resources} />
                 </Stack>
             )}
         </DialogContent>

@@ -1,14 +1,16 @@
 import ClearIcon from "@mui/icons-material/Clear"
 import SearchIcon from "@mui/icons-material/Search"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Divider from "@mui/material/Divider"
-import IconButton from "@mui/material/IconButton"
-import InputAdornment from "@mui/material/InputAdornment"
-import MenuItem from "@mui/material/MenuItem"
-import Stack from "@mui/material/Stack"
-import TextField from "@mui/material/TextField"
-import Typography from "@mui/material/Typography"
+import {
+    Box,
+    Button,
+    Divider,
+    IconButton,
+    InputAdornment,
+    MenuItem,
+    Stack,
+    TextField,
+    Typography,
+} from "@mui/material"
 import type { ChangeEvent } from "react"
 import { useCallback } from "react"
 import { CRITICALITIES, ENVIRONMENTS, PROVIDERS } from "@src/types"

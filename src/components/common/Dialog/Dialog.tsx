@@ -1,10 +1,6 @@
 import CloseIcon from "@mui/icons-material/Close"
-import MuiDialog from "@mui/material/Dialog"
-import type { DialogProps } from "@mui/material/Dialog"
-import DialogTitle from "@mui/material/DialogTitle"
-import IconButton from "@mui/material/IconButton"
-import Stack from "@mui/material/Stack"
-import Typography from "@mui/material/Typography"
+import { Dialog as MuiDialog, DialogTitle, IconButton, Stack, Typography } from "@mui/material"
+import type { DialogProps } from "@mui/material"
 import type { ReactNode } from "react"
 import { FullScreenIconButton } from "./FullScreenIconButton"
 

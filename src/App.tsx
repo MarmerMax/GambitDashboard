@@ -1,13 +1,12 @@
-import CssBaseline from "@mui/material/CssBaseline"
-import { ThemeProvider } from "@mui/material/styles"
+import { CssBaseline, ThemeProvider } from "@mui/material"
 import { Provider } from "react-redux"
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router"
-import { AppLayout } from "@src/components/common/AppLayout"
-import { ErrorBoundary } from "@src/components/common/ErrorBoundary"
-import { ApplicationDetailsDialogContainer } from "@src/containers/Applications/ApplicationDetailsDialogContainer"
+import { AppLayout } from "@src/components/common"
+import { ErrorBoundary } from "@src/components/common"
+import { ApplicationDetailsDialogContainer } from "@src/containers/Applications"
 import { ApplicationsPage, ResourcesPage } from "@src/pages"
 import { store } from "@src/state/store"
-import { theme } from "@src/theme/theme"
+import { theme } from "@src/theme"
 import { APP_ROUTES, APPLICATION_DETAILS_PATH } from "@src/types"
 
 const router = createBrowserRouter([

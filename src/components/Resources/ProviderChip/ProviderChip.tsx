@@ -1,6 +1,6 @@
-import { PROVIDER_COLOR } from "@src/theme/statusColors"
+import { PROVIDER_COLOR } from "@src/theme"
 import type { Provider } from "@src/types"
-import { StatusChip } from "@src/components/common/StatusChip"
+import { StatusChip } from "@src/components/common"
 
 export interface ProviderChipPropsType {
     provider: Provider

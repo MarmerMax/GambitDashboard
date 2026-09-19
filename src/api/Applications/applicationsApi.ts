@@ -1,5 +1,5 @@
-import { decodeCursor, encodeCursor, simulateLatency } from "@src/api/common/mockNetwork"
-import { SEEDED_APPLICATIONS } from "@src/mock/applications"
+import { decodeCursor, encodeCursor, simulateLatency } from "@src/api/common"
+import { SEEDED_APPLICATIONS } from "@src/mock"
 import type { Application, ApplicationDraft, CursorPage } from "@src/types"
 
 export interface FetchApplicationsParams {

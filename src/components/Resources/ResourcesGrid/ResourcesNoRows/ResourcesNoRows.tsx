@@ -1,5 +1,5 @@
-import Button from "@mui/material/Button"
-import { EmptyState } from "@src/components/common/EmptyState"
+import { Button } from "@mui/material"
+import { EmptyState } from "@src/components/common"
 
 export type ResourcesNoRowsPropsType = {
     hasActiveFilters: boolean

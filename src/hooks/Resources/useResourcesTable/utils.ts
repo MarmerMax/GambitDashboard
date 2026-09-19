@@ -1,5 +1,6 @@
 import type { ResourceSortField } from "@src/types"
-import { SORTABLE_FIELDS, type TokensByPage } from "./tableReducer"
+import type { TokensByPage } from "@src/types"
+import { SORTABLE_FIELDS } from "./tableReducer"
 
 export const DEFAULT_PAGE_SIZE = 25
 export const SEARCH_DEBOUNCE_MS = 350

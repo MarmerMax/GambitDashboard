@@ -1,7 +1,7 @@
 import FullscreenIcon from "@mui/icons-material/Fullscreen"
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit"
-import IconButton from "@mui/material/IconButton"
-import type { IconButtonProps } from "@mui/material/IconButton"
+import { IconButton } from "@mui/material"
+import type { IconButtonProps } from "@mui/material"
 
 export type FullScreenIconButtonPropsType = IconButtonProps & {
     isFullScreen?: boolean

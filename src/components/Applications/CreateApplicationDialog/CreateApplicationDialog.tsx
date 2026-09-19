@@ -1,19 +1,21 @@
-import Alert from "@mui/material/Alert"
-import Box from "@mui/material/Box"
-import Button from "@mui/material/Button"
-import Chip from "@mui/material/Chip"
-import Dialog from "@mui/material/Dialog"
-import DialogActions from "@mui/material/DialogActions"
-import DialogContent from "@mui/material/DialogContent"
-import DialogTitle from "@mui/material/DialogTitle"
-import Stack from "@mui/material/Stack"
-import TextField from "@mui/material/TextField"
-import Typography from "@mui/material/Typography"
+import {
+    Alert,
+    Box,
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Stack,
+    TextField,
+    Typography,
+} from "@mui/material"
 import type { ChangeEvent, FormEvent } from "react"
 import { useCallback } from "react"
 import type { Resource } from "@src/types"
-import { CriticalityChip } from "@src/components/Resources/CriticalityChip"
-import { ProviderChip } from "@src/components/Resources/ProviderChip"
+import { CriticalityChip } from "@src/components/Resources"
+import { ProviderChip } from "@src/components/Resources"
 
 export interface CreateApplicationDialogPropsType {
     open: boolean

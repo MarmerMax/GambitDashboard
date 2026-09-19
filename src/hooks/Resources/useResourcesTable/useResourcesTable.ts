@@ -1,33 +1,18 @@
 import type { GridPaginationModel, GridSortModel } from "@mui/x-data-grid"
-import { useCallback, useEffect, useMemo, useReducer, useState } from "react"
-import type { FetchResourcesParams } from "@src/api/Resources/resourcesApi"
+import { useCallback, useEffect, useMemo, useReducer } from "react"
+import type { FetchResourcesParams } from "@src/api/Resources"
+import { useDebouncedValue } from "@src/hooks/common"
+import { getErrorMessage } from "@src/state/api"
+import { useGetResourcesQuery } from "@src/state/Resources"
 import type { Criticality, Environment, Provider, Resource } from "@src/types"
-import { useDebouncedValue } from "@src/hooks/common/useDebouncedValue"
-import { useAppDispatch, useAppSelector } from "@src/state/hooks"
-import { fetchResourcesPage } from "@src/state/Resources/resourcesSlice"
 import { INITIAL_STATE, TABLE_ACTION_TYPE, tableReducer } from "./tableReducer"
-import { FIRST_PAGE, isSortableField, SEARCH_DEBOUNCE_MS } from "./utils"
+import { isSortableField, SEARCH_DEBOUNCE_MS } from "./utils"
+
+const EMPTY_ROWS: Resource[] = []
+const EMPTY_TOTAL = 0
 
 export const useResourcesTable = () => {
     const [state, dispatch] = useReducer(tableReducer, INITIAL_STATE)
-    const [reloadKey, setReloadKey] = useState(0)
-
-    const appDispatch = useAppDispatch()
-    const {
-        ids,
-        total: rowCount,
-        isLoading,
-        error,
-    } = useAppSelector((store) => store.resources.list)
-    const entities = useAppSelector((store) => store.resources.entities)
-
-    const rows = useMemo(
-        () =>
-            ids
-                .map((id) => entities[id])
-                .filter((resource): resource is Resource => Boolean(resource)),
-        [ids, entities],
-    )
 
     const debouncedSearch = useDebouncedValue(state.filters.search, SEARCH_DEBOUNCE_MS)
     const token = state.tokens[state.page]
@@ -56,30 +41,13 @@ export const useResourcesTable = () => {
     )
 
     const page = state.page
-    const pageSize = state.pageSize
+
+    const { data, isFetching, error, refetch } = useGetResourcesQuery(params)
 
     useEffect(() => {
-        if (page > FIRST_PAGE && params.next_token === undefined) {
-            dispatch({ type: TABLE_ACTION_TYPE.SET_PAGINATION, page: FIRST_PAGE, pageSize })
-
-            return
-        }
-
-        const request = appDispatch(fetchResourcesPage(params))
-
-        request
-            .unwrap()
-            .then((response) =>
-                dispatch({
-                    type: TABLE_ACTION_TYPE.PAGE_LOADED,
-                    page,
-                    nextToken: response.next_token,
-                }),
-            )
-            .catch(() => undefined)
-
-        return () => request.abort()
-    }, [appDispatch, params, page, pageSize, reloadKey])
+        if (!data) return
+        dispatch({ type: TABLE_ACTION_TYPE.PAGE_LOADED, page, nextToken: data.next_token })
+    }, [data, page])
 
     const paginationModel = useMemo<GridPaginationModel>(
         () => ({ page: state.page, pageSize: state.pageSize }),
@@ -114,8 +82,12 @@ export const useResourcesTable = () => {
     const resetFilters = useCallback(() => dispatch({ type: TABLE_ACTION_TYPE.RESET_FILTERS }), [])
 
     const handlePaginationModelChange = useCallback(
-        ({ page: nextPage, pageSize }: GridPaginationModel) =>
-            dispatch({ type: TABLE_ACTION_TYPE.SET_PAGINATION, page: nextPage, pageSize }),
+        ({ page: nextPage, pageSize: nextPageSize }: GridPaginationModel) =>
+            dispatch({
+                type: TABLE_ACTION_TYPE.SET_PAGINATION,
+                page: nextPage,
+                pageSize: nextPageSize,
+            }),
         [],
     )
 
@@ -131,8 +103,6 @@ export const useResourcesTable = () => {
         dispatch({ type: TABLE_ACTION_TYPE.SET_SORT, field: entry.field, direction: entry.sort })
     }, [])
 
-    const retry = useCallback(() => setReloadKey((current) => current + 1), [])
-
     const hasActiveFilters = useMemo(
         () =>
             state.filters.search !== "" ||
@@ -143,10 +113,10 @@ export const useResourcesTable = () => {
     )
 
     return {
-        rows,
-        rowCount,
-        isLoading,
-        error,
+        rows: data?.items ?? EMPTY_ROWS,
+        rowCount: data?.total ?? EMPTY_TOTAL,
+        isLoading: isFetching,
+        error: getErrorMessage(error),
         filters: state.filters,
         hasActiveFilters,
         paginationModel,
@@ -158,6 +128,6 @@ export const useResourcesTable = () => {
         resetFilters,
         handlePaginationModelChange,
         handleSortModelChange,
-        retry,
+        retry: refetch,
     }
 }

@@ -1,6 +1,4 @@
-import Alert from "@mui/material/Alert"
-import Link from "@mui/material/Link"
-import Snackbar from "@mui/material/Snackbar"
+import { Alert, Link, Snackbar } from "@mui/material"
 import { Link as RouterLink } from "react-router"
 import { APP_ROUTES } from "@src/types"
 import type { Application } from "@src/types"

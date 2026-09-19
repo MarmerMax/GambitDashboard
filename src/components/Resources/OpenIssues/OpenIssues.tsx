@@ -1,4 +1,4 @@
-import Chip from "@mui/material/Chip"
+import { Chip } from "@mui/material"
 
 export interface OpenIssuesPropsType {
     count: number

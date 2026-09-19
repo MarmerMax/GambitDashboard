@@ -1,6 +1,6 @@
-import { CRITICALITY_COLOR } from "@src/theme/statusColors"
+import { CRITICALITY_COLOR } from "@src/theme"
 import type { Criticality } from "@src/types"
-import { StatusChip } from "@src/components/common/StatusChip"
+import { StatusChip } from "@src/components/common"
 
 export interface CriticalityChipPropsType {
     criticality: Criticality

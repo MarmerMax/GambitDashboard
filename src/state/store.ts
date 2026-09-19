@@ -1,12 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit"
-import { applicationsReducer } from "@src/state/Applications/applicationsSlice"
-import { resourcesReducer } from "@src/state/Resources/resourcesSlice"
+import { baseApi } from "@src/state/api"
+
+import "@src/state/Applications"
+import "@src/state/Resources"
 
 export const store = configureStore({
     reducer: {
-        resources: resourcesReducer,
-        applications: applicationsReducer,
+        [baseApi.reducerPath]: baseApi.reducer,
     },
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(baseApi.middleware),
 })
 
 export type RootStateType = ReturnType<typeof store.getState>

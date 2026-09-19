@@ -1,4 +1,5 @@
 import { EMPTY_FILTERS } from "@src/types"
+import type { TokensByPage } from "@src/types"
 import type {
     Criticality,
     Environment,
@@ -19,8 +20,6 @@ export const SORTABLE_FIELDS: readonly ResourceSortField[] = [
     "owner",
     "openIssues",
 ]
-
-export type TokensByPage = Record<number, string | undefined>
 
 interface TableState {
     filters: ResourceFilters
@@ -66,6 +65,9 @@ export const withFilters = (state: TableState, filters: ResourceFilters): TableS
     tokens: INITIAL_TOKENS,
 })
 
+const hasToken = (state: TableState, page: number) =>
+    page === FIRST_PAGE || state.tokens[page] !== undefined
+
 export const tableReducer = (state: TableState, action: TableAction): TableState => {
     switch (action.type) {
         case TABLE_ACTION_TYPE.SET_SEARCH:
@@ -87,9 +89,18 @@ export const tableReducer = (state: TableState, action: TableAction): TableState
                 tokens: INITIAL_TOKENS,
             }
         case TABLE_ACTION_TYPE.SET_PAGINATION:
-            return action.pageSize === state.pageSize
+            if (action.pageSize !== state.pageSize) {
+                return {
+                    ...state,
+                    page: FIRST_PAGE,
+                    pageSize: action.pageSize,
+                    tokens: INITIAL_TOKENS,
+                }
+            }
+
+            return hasToken(state, action.page)
                 ? { ...state, page: action.page }
-                : { ...state, page: FIRST_PAGE, pageSize: action.pageSize, tokens: INITIAL_TOKENS }
+                : { ...state, page: FIRST_PAGE }
         case TABLE_ACTION_TYPE.PAGE_LOADED:
             return { ...state, tokens: { ...state.tokens, [action.page + 1]: action.nextToken } }
     }

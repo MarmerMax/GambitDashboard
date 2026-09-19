@@ -1,5 +1,4 @@
-import Chip from "@mui/material/Chip"
-import Typography from "@mui/material/Typography"
+import { Chip, Typography } from "@mui/material"
 import type { GridColDef } from "@mui/x-data-grid"
 import type { Application } from "@src/types"
 
@@ -16,7 +15,6 @@ const COLUMNS: GridColDef<Application>[] = [
     {
         field: "description",
         headerName: "Description",
-        flex: 2,
         renderCell: ({ row }) => (
             <Typography variant="body2" color="text.secondary" noWrap sx={{ lineHeight: "52px" }}>
                 {row.description ?? "—"}
@@ -34,7 +32,7 @@ const COLUMNS: GridColDef<Application>[] = [
 
 export const APPLICATION_COLUMNS: GridColDef<Application>[] = COLUMNS.map((column) => ({
     flex: 1,
-    sortable: false,
+    sortable: true,
     disableColumnMenu: true,
     ...column,
 }))
