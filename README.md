@@ -1,7 +1,11 @@
 # Gambit Security — Cloud Resource Explorer
 
-A small dashboard for browsing cloud resources, grouping them into Applications, and viewing each
-Application as a resource graph. No backend — all state lives in the client.
+A dashboard for browsing cloud resources, grouping them into Applications, and viewing each
+Application as a resource graph.
+
+There is no backend: a **mocked API layer** simulates a paginated, searchable, filterable and
+sortable endpoint over an in-memory dataset, so the table behaves like a real server-driven grid
+(network latency, cursor pagination, request cancellation) without running a server.
 
 ## Getting started
 
@@ -10,108 +14,129 @@ npm install
 npm run dev
 ```
 
-The app starts on the port Vite prints (default `http://localhost:5173`).
+| Script            | What it does                                           |
+| ----------------- | ------------------------------------------------------ |
+| `npm run dev`     | Start the dev server                                   |
+| `npm run build`   | Type-check (`tsc -b`, strict) and build for production |
+| `npm run preview` | Serve the production build                             |
+| `npm run lint`    | Run oxlint                                             |
 
-| Script | What it does |
-|--------|--------------|
-| `npm run dev` | Start the dev server |
-| `npm run build` | Type-check (`tsc -b`, strict) and build for production |
-| `npm run preview` | Serve the production build |
-| `npm run lint` | Run oxlint |
+## Stack
+
+React 19 · TypeScript (strict) · Vite · MUI 9 · MUI X Data Grid 9 (Community)
 
 ## What was implemented
 
-**Resources**
-- Table with name (plus region, owner, tags), type, provider, environment, criticality and open issues
-- Search by name, and provider / environment / criticality filters, all combinable
-- "Clear filters" (disabled when no filter is active) and an empty state when filters match nothing
-- Row checkboxes, a header checkbox that selects/deselects everything currently visible (with an
-  indeterminate state for partial selection), and selected rows highlighted
-- A selection bar appears once something is selected: count, "Clear selection", and
-  **Create Application (N)**
-- Skeleton loading state while the (simulated) inventory loads
+**Server-driven resources table (MUI X Data Grid, Community)**
 
-**Create Application**
-- Modal dialog with a required name, an optional description and the list of selected resources
-- Name validation on submit, with an inline error linked to the input via `aria-describedby`
-- Cancel, Escape and backdrop click all close it
-- On create: the Application is added, the new Application becomes the selected one, and the
-  resource selection is cleared — resources themselves stay available for other Applications
+- Every user interaction issues a request: `search`, `provider`, `environment`, `criticality`,
+  `sort_by`, `sort_dir`, `page_size`, `next_token`
+- `paginationMode` / `sortingMode` / `filterMode` are all `"server"` — the grid never filters or
+  sorts data on the client, so it only ever holds one page in memory
+- **Cursor pagination**: the API returns `{ items, next_token, total }`; the client keeps a token
+  per visited page index. The Community footer is prev/next only, so a cursor flow fits it exactly
+- **Row virtualization** comes from the Data Grid itself; page sizes go up to 100 rows
+- Search is debounced (350 ms), and every in-flight request is cancelled via `AbortController` when
+  a newer one starts, so fast typing can't produce out-of-order results
+- Loading states: skeleton rows on first load, a progress bar on subsequent fetches
+- Error state with a Retry action
+- Empty state that offers "Clear filters" when filters are active
 
-**Applications**
-- Panel listing every Application with name, description, resource count and a summary of member
-  resources (first three + "+N more")
-- Clicking an Application selects it; the selected card is visually marked (`aria-pressed`)
-- Empty state when no Applications exist yet
+**Selection and Applications**
+
+- Checkbox selection that survives paging and filtering (`keepNonExistentRowsSelected`), with a
+  selection bar showing **Create Application (N)**
+- Create dialog: required name (validated), optional description, list of selected resources
+- On create: the Application is added, auto-selected, and the resource selection is cleared
+- Applications panel with name, description, resource count and member chips; empty state included
 
 **Application graph**
-- Inline SVG star graph: the Application in the centre, each member resource on an ellipse around
-  it, connected by dashed edges
-- Node accent colour encodes criticality (with a legend), hover highlights the node, and the native
-  SVG `<title>` gives full resource details on hover
-- Below the graph, a list of member resources with provider / environment / criticality badges and
-  open-issue counts
+
+- Clicking an Application in the panel opens it in a dialog — an inline SVG star graph with the
+  Application in the centre, member resources around it, criticality-coloured accents, hover
+  highlight and a detail tooltip per node, plus a member list below
+- The dialog has an expand button that grows it to full screen (and back); the graph scales with it
 
 ## Main technical decisions
 
-- **No UI library.** The surface is small (table, selects, modal, badges, graph) and the brief asks
-  for good visual detail, so a single stylesheet with CSS custom properties gives full control with
-  zero dependency weight. Class names follow a light BEM convention.
-- **Plain SVG instead of React Flow.** The required graph is a static star layout; node positions
-  are pure trigonometry (~15 lines). A graph library would add a large dependency and a canvas/pan
-  interaction model the brief explicitly does not want.
-- **State split into small hooks** — `useResources` (data + loading), `useResourceFilters`,
-  `useSelection`, `useApplications`. Each owns one concern, is independently testable, and `App`
-  stays a thin composition layer. No Redux/Zustand: nothing here is shared deeply enough to need it.
-- **Selection is stored as resource ids**, not resource objects, so it stays correct if the
-  inventory is ever refetched. Applications likewise reference `resourceIds` (per the given model);
-  the UI resolves them through a `Record<string, Resource>` lookup built once with `useMemo`.
-- **Types are the source of truth.** The `Provider`/`Environment`/`Criticality` unions are mirrored
-  by `PROVIDERS`/`ENVIRONMENTS`/`CRITICALITIES` constants that drive both the filter dropdowns and
-  the legend, so adding a value is a one-line change. `strict` is on and there is no `any`.
-- **A simulated 450ms load** exists only so the loading state in the brief is real rather than
-  decorative.
-- **Accessibility**: every control has a label, the dialog is `role="dialog"` + `aria-modal` +
-  `aria-labelledby` with focus placed in the name field, the validation error is announced via
-  `role="alert"`, the graph carries an `aria-label` describing the connection, and focus-visible
-  outlines are preserved throughout.
+- **MUI + Data Grid instead of hand-written CSS.** The first iteration used a stylesheet of custom
+  classes; it was hard to keep consistent and gave nothing for free. MUI's `sx` plus a single theme
+  removed all app CSS, and the Community Data Grid supplies virtualization, sorting, pagination,
+  selection and accessible keyboard navigation out of the box.
+- **Custom filter controls instead of the Data Grid filter panel.** Provider / Environment /
+  Criticality dropdowns and a search box live in a custom `slots.toolbar`, driving the server query
+  directly. The generic filter panel would mean building rules ("provider equals AWS") for a UX that
+  should be three dropdowns.
+- **All table state in one reducer** (`useResourcesTable`). Filters, sort, page, page size and the
+  token cache update atomically — for example, changing a filter resets the page _and_ clears the
+  cursor cache in the same dispatch. With separate `useState` calls, one render could fire a request
+  with the new filter and a stale cursor.
+- **A resource cache keyed by id.** Selection is stored as ids, but the dialog and the Applications
+  panel need whole resources, and those rows may live on a page the grid no longer holds. Every
+  fetched page is merged into a small id→resource map that the rest of the UI reads from.
+- **Feature-based folders.** `components/` (presentational), `containers/` (stateful),
+  `pages/`, `hooks/`, `api/`, `types/`, `theme/`, `mock/` — each split by feature (`Resources`,
+  `Applications`) with a `common/` folder where something is genuinely shared.
+- **Dataset size.** The brief asks for ~10 resources, but 10 rows demonstrate neither pagination nor
+  virtualization, so the 10 curated resources are followed by ~230 deterministically generated ones
+  (fixed seed, so runs are reproducible). Change `GENERATED_COUNT` in `src/mock/resources.ts`.
+- **Applications stay in client state.** The brief scopes the mock API to fetching resources, so
+  application creation is a plain `useState` — no fake POST endpoint that nothing would read back.
 
 ### Structure
 
 ```text
 src/
-  components/   # presentational + small stateful UI pieces
-  data/         # sample resources
-  hooks/        # resources, filters, selection, applications
-  types/        # domain types and the option constants
-  App.tsx       # composition + cross-cutting state
-  index.css     # tokens, base styles, component styles
+  api/
+    common/mockNetwork.ts       # latency, abort, cursor encode/decode
+    Resources/resourcesApi.ts   # fetchResources(params, signal)
+  components/
+    common/                     # AppHeader, Dialog, EmptyState, StatusChip
+    Resources/                  # grid, toolbar, columns, chips, overlays
+    Applications/               # panel, list item, graph, create + details dialogs
+  containers/
+    Resources/                  # grid container (owns the table hook)
+    Applications/               # panel, create dialog and details dialog containers
+  hooks/
+    common/useDebouncedValue.ts
+    Resources/                  # useResourcesTable, useResourceCache, useResourceSelection
+    Applications/useApplications.ts
+  pages/DashboardPage/
+  types/                        # domain types, query/response contracts
+  theme/                        # MUI theme + status colour maps
+  mock/                         # in-memory dataset
 ```
 
 ## What could be improved with more time
 
-- **Persistence** — Applications vanish on reload; `localStorage` (or a real API) would be the first
-  addition, along with edit/delete for Applications.
-- **Richer graph** — group nodes by environment or provider, draw resource↔resource dependencies,
-  and add zoom/pan once the node count outgrows a single ellipse (labels start colliding past ~12
-  nodes; today the data set is 10).
-- **Table ergonomics** — sorting per column, pagination/virtualisation for realistic inventories,
-  and filtering by owner/tag (the data already carries both).
-- **Tests** — the project ships without a test setup; Vitest + React Testing Library covering the
-  filter/selection/create flows and a focus-trap pass on the modal would be the first addition.
-- **Dark theme** — the palette is already tokenised, so this is mostly a second `:root` block.
-- **Design polish** — a proper icon set for providers, and toast feedback after creating an
-  Application.
+- **Persistence and a real API.** Applications vanish on reload, and `resourcesApi` would be swapped
+  for `fetch`; the query/response contract is already shaped for that. Editing and deleting
+  Applications are missing too.
+- **Reflect query state in the URL** so a filtered view can be shared or restored on reload.
+- **A data-fetching library** (TanStack Query / RTK Query) would replace the hand-rolled request
+  effect and add caching, retries and stale-while-revalidate for free.
+- **Tests.** Vitest + React Testing Library around `useResourcesTable` (token cache, filter resets,
+  cancellation) and the create flow; the current verification is `tsc --strict`, oxlint and manual
+  testing.
+- **Richer graph** — dependencies between resources, grouping by environment, and zoom/pan once a
+  star layout stops scaling (labels start colliding past ~12 nodes).
+- **Dark mode** — the theme is already the single source of colour, so this is a palette addition
+  rather than a refactor.
+- One oxlint warning remains by design: `setIsLoading(true)` inside the fetch effect is flagged by
+  `react(set-state-in-effect)`, which is the correct shape for a request-on-mount/param-change.
 
 ## Where AI was used
 
-The project was built in a single session with Claude (Claude Code):
+Built with Claude (Claude Code):
 
-- Scaffolding (`npm create vite`), the component/hook breakdown, all component and styling code, the
-  sample data set and this README were AI-generated from the assignment brief.
-- I reviewed and directed the output: no component library, plain SVG for the graph, hooks instead
-  of a state library, and the accessibility requirements above.
-- Verification was done by running the real toolchain rather than trusting the output: `tsc -b`
-  under `strict`, `oxlint`, and the dev server. The flows (filtering, selection, validation,
-  create-Application, graph render) were additionally exercised headlessly during development
-  before the test tooling was removed to keep the project dependency-light — no defects surfaced.
+- AI wrote the scaffolding, the component/hook/API split, all components, the mock API, the dataset
+  generator and this README.
+- I directed the architecture: MUI + Community Data Grid over hand-written CSS, server-side
+  search/filter/sort/pagination against a mocked endpoint with `next_token`, feature-based folders,
+  and containers separated from presentational components.
+- MUI v9 and Data Grid v9 APIs were taken from the official docs rather than memory, which caught
+  two breaking changes: system props (`justifyContent`, `mb`, `bgcolor`, …) no longer exist on
+  components and must go through `sx`, and `rowSelectionModel` is now `{ type, ids: Set }`.
+- Verification: `tsc -b` under `strict` and `oxlint` are clean; three lint findings led to real
+  fixes (the resource cache became state instead of a ref read during render, `rowCount` became
+  plain state, and the dialog resets on events instead of in an effect).
