@@ -229,21 +229,51 @@ Each layer only knows the one below it. Swapping the mock for a real backend tou
 
 ## Where AI was used
 
-Built with Claude (Claude Code), reviewed and directed by me:
+I used Claude (Claude Code) as an implementation assistant: I made the architectural decisions,
+reviewed every change, and iterated on the result — the model typed most of the code.
 
-- AI wrote the scaffolding, the component/hook/API split, all components, the mock API, the dataset
-  generator and this README.
-- I drove the architecture across several iterations: MUI + Community Data Grid over hand-written
-  CSS; server-side search/filter/sort/pagination against a mocked endpoint with `next_token`;
-  splitting Resources and Applications into separate pages behind a router; and replacing the
-  hand-rolled Redux slices with RTK Query once it was clear the thunk results were being consumed
-  through `unwrap()` rather than the reducers.
-- MUI 9 and Data Grid 9 APIs were taken from the official docs rather than memory, which caught two
-  breaking changes: system props (`justifyContent`, `mb`, `bgcolor`, …) no longer exist on
-  components and must go through `sx`, and `rowSelectionModel` is now `{ type, ids: Set }`.
-- Several bugs were found by reading source rather than guessing — the grid growing past `100vh`
-  traced to MUI Grid's `flex-wrap: wrap` in `gridGenerator.js`, and graph nodes becoming unclickable
-  traced to pointer capture retargeting the `click` event.
-- Verification throughout: `tsc --noEmit` under `strict`, `oxlint`, production builds, and probing
-  the mock API directly in Node to confirm filter/pagination counts and the cold-cache fetch-by-id
-  path.
+**Decisions I made and directed**
+
+- Replace hand-written CSS with MUI + the Community Data Grid, so virtualization, sorting,
+  pagination, selection and keyboard support come from a maintained library rather than custom code.
+- Make the table genuinely server-driven — search, filters, sort and pagination as requests against
+  a mocked API with `next_token`, instead of filtering a client-side array.
+- Split Resources and Applications into separate pages behind a router, with the details dialog as a
+  nested route so it has a shareable URL.
+- Introduce Redux, then progressively remove what didn't earn its place: the create thunk, then the
+  by-id thunk, and finally the slices themselves in favour of RTK Query.
+- Project conventions: feature-first folders, one component per folder with an `index.ts`, imports
+  through barrels, the `@src` alias, Prettier at 4 spaces with no semicolons.
+- The graph's interaction model: drop the static member list, expand the node itself on click, and
+  add zoom/pan for larger applications.
+
+**Where I corrected or reworked the AI's output**
+
+- I spotted that the async thunks were being consumed through `unwrap()` rather than their reducers,
+  which pointed at a real design problem — results flowing through two channels at once. That review
+  is what led to the RTK Query migration and deleting both slices.
+- I questioned why a table hook needed two effects; one turned out to be a leftover guard, and the
+  invariant moved into the reducer so the bad state can't be represented at all.
+- I rejected a layout built on `calc(100dvh - 112px)` magic numbers and asked for MUI props instead,
+  which produced the flex chain the app uses now.
+- I refactored the table hooks by hand into `tableReducer` / `utils` / hook files, replaced the
+  dialog's boolean state with `selectedApplicationId` as a single source of truth, and reworked the
+  grid columns and header.
+- When I proposed removing the by-id lookup, the trade-off analysis surfaced a deep-link case that
+  would hang on an application outside page 1, so I reinstated it.
+- All visual and interaction QA was mine: I caught the graph nodes not responding to clicks, a
+  stray focus outline, node clicks dragging the canvas, content being clipped in full screen, and
+  the columns not filling the grid width. Each was traced to a specific cause and fixed.
+
+**How the work was verified**
+
+- `tsc --noEmit` under `strict`, `oxlint` and a production build after every change.
+- The mock API was exercised directly in Node to confirm filter and pagination counts and the
+  cold-cache fetch-by-id path.
+- MUI 9 and Data Grid 9 APIs were taken from the official documentation rather than the model's
+  memory, which caught two breaking changes: system props such as `justifyContent` and `bgcolor` no
+  longer exist on components and must go through `sx`, and `rowSelectionModel` is now
+  `{ type, ids: Set }`.
+- Two bugs were diagnosed by reading library source instead of guessing: the page growing past the
+  viewport traced to MUI Grid's `flex-wrap: wrap`, and unclickable graph nodes traced to pointer
+  capture retargeting the `click` event.
